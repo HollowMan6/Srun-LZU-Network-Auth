@@ -1,6 +1,7 @@
 # 兰大深澜网络认证工具
 
 [![last-commit](https://img.shields.io/github/last-commit/HollowMan6/Srun-LZU-Network-Auth)](../../graphs/commit-activity)
+[![release-date](https://img.shields.io/github/release-date/HollowMan6/Srun-LZU-Network-Auth)](../../releases)
 ![Python package](https://github.com/HollowMan6/Srun-LZU-Network-Auth/workflows/Python%20package/badge.svg)
 
 [![Followers](https://img.shields.io/github/followers/HollowMan6?style=social)](https://github.com/HollowMan6?tab=followers)
