@@ -22,7 +22,7 @@
 
 [程序](slna.py)
 
-Python版兰大深澜网络认证CLI登录、注销、查询信息客户端
+Python版兰大深澜网络认证CLI登录、注销、查询信息客户端。
 
 目前支持`SRun CGI Auth Intf Svr V1.18 B20200522`，可能并不局限于兰州大学（当然要更改代码中`login_url`变量值），也可能向前向后版本都会兼容。请多多尝试！
 
@@ -40,7 +40,7 @@ Python版兰大深澜网络认证CLI登录、注销、查询信息客户端
 
 [Programme](slna.py)
 
-Tool for CLI login, logout, check acccount info for LZU 'SRun CGI Auth Intf Svr V1.18' using Python
+Tool for CLI login, logout, check acccount info for LZU 'SRun CGI Auth Intf Svr V1.18' using Python.
 
 Currently, `SRun CGI Auth Intf Svr V1.18 B20200522` is supported. The programme may not be limited to Lanzhou University (of course, the variable value in the code `login_url` should be changed), may also be compatible with both newer and older versions. Please give it a try!
 
