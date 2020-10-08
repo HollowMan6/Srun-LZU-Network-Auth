@@ -10,6 +10,8 @@ import requests
 import hashlib
 import hmac
 import math
+import getopt
+from urllib import parse
 
 
 '''
@@ -19,7 +21,7 @@ import math
 return_code_zh_CN = {
     "E2901: (Third party 1)bind_user2: ldap_bind error": "账号或密码错误",
     "E2901: (Third party 1)ldap_first_entry error": "账号或密码错误",
-	"E2901: (Third party 1){":"账号或密码错误",
+    "E2901: (Third party 1){": "账号或密码错误",
     "CHALLENGE failed, BAS respond timeout.": "网络连接超时，请稍后重试",
     "INFOError锛宔rrCode=2": "设备不在认证区域内",
 }
@@ -27,7 +29,7 @@ return_code_zh_CN = {
 return_code_en_US = {
     "E2901: (Third party 1)bind_user2: ldap_bind error": "Incorrect username or password",
     "E2901: (Third party 1)ldap_first_entry error": "Incorrect username or password",
-    "E2901: (Third party 1){":"Incorrect username or password",
+    "E2901: (Third party 1){": "Incorrect username or password",
     "CHALLENGE failed, BAS respond timeout.": "Network connection timed out, please try again later",
     "INFOError锛宔rrCode=2": "The device is not within the scope of certification"
 }
@@ -184,12 +186,11 @@ header = {
 }
 
 login_url = "http://10.10.0.166"
-get_challenge_api = login_url+"/cgi-bin/get_challenge"
-srun_portal_login_api = login_url+"/cgi-bin/srun_portal"
-srun_portal_logout_api = login_url+"/cgi-bin/rad_user_dm"
-srun_portal_info_api = login_url+"/cgi-bin/rad_user_info"
+get_challenge_api = parse.urljoin(login_url, "/cgi-bin/get_challenge")
+srun_portal_login_api = parse.urljoin(login_url, "/cgi-bin/srun_portal")
+srun_portal_logout_api = parse.urljoin(login_url, "/cgi-bin/rad_user_dm")
+srun_portal_info_api = parse.urljoin(login_url, "/cgi-bin/rad_user_info")
 
-# Unkown meaning parameter here
 n = '200'
 type = '1'
 ac_id = '2'
@@ -224,11 +225,17 @@ def get_info(username, password, ip):
 def init_getip():
     init_res = requests.get(login_url, headers=header)
     if init_res.status_code == 200:
-        ip = re.search('id="user_ip" value="(.*?)"', init_res.text).group(1)
-        return ip
+        try:
+            ip = re.search('id="user_ip" value="(.*?)"',
+                           init_res.text).group(1)
+            return ip
+        except Exception:
+            print(
+                "Error parsing response data, you may need to change the login_url or the script may not suit your version!")
+            sys.exit()
     else:
         print("Connect Timeout! Check your Internet connection!")
-        return None
+        sys.exit()
 
 
 def get_token(username, ip):
@@ -241,11 +248,12 @@ def get_token(username, ip):
     get_challenge_res = requests.get(
         get_challenge_api, params=get_challenge_params, headers=header)
     if get_challenge_res.status_code == 200:
-        token = re.search('"challenge":"(.*?)"', get_challenge_res.text).group(1)
+        token = re.search('"challenge":"(.*?)"',
+                          get_challenge_res.text).group(1)
         return token
     else:
         print("Connect Timeout! Check your Internet connection!")
-        return None
+        sys.exit()
 
 
 def do_encrypt_work(username, password, token, ip):
@@ -254,6 +262,7 @@ def do_encrypt_work(username, password, token, ip):
     hmd5 = get_md5(password, token)
     chksum = get_sha1(get_chksum(token, username, hmd5, ip, srbx1))
     return srbx1, hmd5, chksum
+
 
 def login(username, password):
     print("Login...")
@@ -264,7 +273,8 @@ def login(username, password):
     if ip:
         token = get_token(username, ip)
         if token:
-            srbx1, hmd5, chksum = do_encrypt_work(username, password, token, ip)
+            srbx1, hmd5, chksum = do_encrypt_work(
+                username, password, token, ip)
             srun_portal_params = {
                 'callback': 'jQuery11240645308969735664_'+str(int(time.time()*1000)),
                 'action': 'login',
@@ -291,15 +301,19 @@ def login(username, password):
                         show_login_info()
                     else:
                         try:
-                            print("Login Failed"+"! "+return_code_en_US[re.search('"error_msg":"(.*?)"', srun_portal_res.text).group(1)]+".")
+                            print("Login Failed"+"! "+return_code_en_US[re.search(
+                                '"error_msg":"(.*?)"', srun_portal_res.text).group(1)]+".")
                         except Exception:
-                            message = re.search('"error_msg":"(.*?)"', srun_portal_res.text)
+                            message = re.search(
+                                '"error_msg":"(.*?)"', srun_portal_res.text)
                             if message:
                                 print("Login Failed"+"! "+message.group(1))
                             else:
-                                print("Login Failed"+"! "+re.search('"error":"(.*?)"', srun_portal_res.text).group(1))
+                                print(
+                                    "Login Failed"+"! "+re.search('"error":"(.*?)"', srun_portal_res.text).group(1))
                 except Exception:
-                    print("Error parsing response data, you may need to change the login_url or the script may not suit your version!")
+                    print(
+                        "Error parsing response data, you may need to change the login_url or the script may not suit your version!")
                     sys.exit()
             else:
                 print("Connect Timeout! Check your Internet connection!")
@@ -308,6 +322,7 @@ def login(username, password):
 '''
  For Get Logging Info
 '''
+
 
 def get_login_info():
     srun_portal_params = {
@@ -323,12 +338,18 @@ def get_login_info():
     if srun_portal_res.status_code == 200:
         try:
             if re.search('"error":"(.*?)"', srun_portal_res.text).group(1) == "ok":
-                user_name = re.search('"user_name":"(.*?)"', srun_portal_res.text).group(1)
-                user_mac = re.search('"user_mac":"(.*?)"', srun_portal_res.text).group(1)
-                online_ip = re.search('"online_ip":"(.*?)"', srun_portal_res.text).group(1)
-                sum_bytes = re.search('"sum_bytes":(.*?),', srun_portal_res.text).group(1)
-                sum_seconds = re.search('"sum_seconds":(.*?),', srun_portal_res.text).group(1)
-                user_balance = re.search('"user_balance":(.*?),', srun_portal_res.text).group(1)
+                user_name = re.search(
+                    '"user_name":"(.*?)"', srun_portal_res.text).group(1)
+                user_mac = re.search('"user_mac":"(.*?)"',
+                                     srun_portal_res.text).group(1)
+                online_ip = re.search(
+                    '"online_ip":"(.*?)"', srun_portal_res.text).group(1)
+                sum_bytes = re.search(
+                    '"sum_bytes":(.*?),', srun_portal_res.text).group(1)
+                sum_seconds = re.search(
+                    '"sum_seconds":(.*?),', srun_portal_res.text).group(1)
+                user_balance = re.search(
+                    '"user_balance":(.*?),', srun_portal_res.text).group(1)
                 return user_name, user_mac, online_ip, sum_bytes, sum_seconds, user_balance
         except Exception:
             print("Error parsing response data, you may need to change the login_url or the script may not suit your version!")
@@ -336,7 +357,8 @@ def get_login_info():
         return None
     else:
         print("Connect Timeout! Check your Internet connection!")
-        return None
+        sys.exit()
+
 
 def auto_bytes(bytes):
     if bytes < 1024:
@@ -352,8 +374,10 @@ def auto_bytes(bytes):
     elif bytes >= 1024 * 1024 * 1024 * 1024 * 1024 and bytes < 1024 * 1024 * 1024 * 1024 * 1024 * 1024:
         bytes = str(round(bytes / 1024 / 1024 / 1024 / 1024 / 1024, 2)) + ' PB'
     elif bytes >= 1024 * 1024 * 1024 * 1024 * 1024 * 1024 and bytes < 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024:
-        bytes = str(round(bytes / 1024 / 1024 / 1024 / 1024 / 1024 /1024, 2)) + ' EB'
+        bytes = str(round(bytes / 1024 / 1024 / 1024 /
+                          1024 / 1024 / 1024, 2)) + ' EB'
     return bytes
+
 
 def show_login_info():
     info = get_login_info()
@@ -361,7 +385,7 @@ def show_login_info():
         print("")
         print("User Name:         "+info[0])
         print("Used Data:         "+auto_bytes(int(info[3])))
-        seconds =int(info[4])
+        seconds = int(info[4])
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
         print("Used Time:         %d:%02d:%02d" % (h, m, s))
@@ -371,6 +395,7 @@ def show_login_info():
     else:
         print("Show Login Info Failed! You are not connected or no account online!")
 
+
 '''
  For Logout
 '''
@@ -378,8 +403,10 @@ def show_login_info():
 form_time = str(int(time.time()*10))
 unbind = '1'
 
+
 def get_sign(username, ip, unbind):
     return get_sha1(form_time + username + ip + unbind + form_time)
+
 
 def logout():
     print("Logout...")
@@ -405,15 +432,19 @@ def logout():
                     print("Logout Success!")
                 else:
                     try:
-                        print("Logout Failed! "+return_code_en_US[re.search('"error_msg":"(.*?)"', srun_portal_res.text).group(1)]+".")
+                        print("Logout Failed! "+return_code_en_US[re.search(
+                            '"error_msg":"(.*?)"', srun_portal_res.text).group(1)]+".")
                     except Exception:
-                        message = re.search('"error_msg":"(.*?)"', srun_portal_res.text)
+                        message = re.search(
+                            '"error_msg":"(.*?)"', srun_portal_res.text)
                     if message:
                         print("Logout Failed"+"! "+message.group(1))
                     else:
-                        print("Logout Failed"+"! "+re.search('"error":"(.*?)"', srun_portal_res.text).group(1))
+                        print("Logout Failed"+"! "+re.search('"error":"(.*?)"',
+                                                             srun_portal_res.text).group(1))
             except Exception:
-                print("Error parsing response data, you may need to change the login_url or the script may not suit your version!")
+                print(
+                    "Error parsing response data, you may need to change the login_url or the script may not suit your version!")
                 sys.exit()
         else:
             print("Connect Timeout! Check your Internet connection!")
@@ -421,27 +452,70 @@ def logout():
         print("Logout Failed! Not online!")
 
 
+def show_help():
+    print("")
+    print("Usage:")
+    print("--help     or -h to show this info.")
+    print("--loginurl or -l to specify login_url.")
+    print("--action   or -a to specify action.")
+    print("         info   to show current loggin infomation.")
+    print("         logout to logout current account.")
+    print("         login  to login with specified information.")
+    print("--username or -u to specify User Name.")
+    print("--password or -p to specify Password.")
+    print("")
+    print("Examples:")
+    print(
+        "'-a login [-u username [ -p password]]'    to login with specified information.")
+    print("'-a logout -l 10.10.0.166'                 to logout current account with specified login_url.")
+    print("'<empty>'                                  to show current loggin infomation.")
+    print("")
+
+
 if __name__ == '__main__':
-    if len(sys.argv)==1:
+    action = "info"
+    username = ""
+    passwd = ""
+    if len(sys.argv) == 1:
         show_login_info()
-    else:
-        if sys.argv[1]=="logout":
-            logout()
-        elif sys.argv[1]=="login":
-            if len(sys.argv)==4:
-                login(sys.argv[2],sys.argv[3])
-            elif len(sys.argv)==3:
-                passwd = getpass.getpass("Please input your password:")
-                login(sys.argv[2], passwd)
-            else:
-                username = input("Please input your user name:")
-                passwd = getpass.getpass("Please input your password:")
-                login(username, passwd)
-        else:
-            print("Unsupported action: "+sys.argv[1])
-            print("")
-            print("Usage:")
-            print("'login [username [, password]]'    to login with specified information.")
-            print("'logout'                           to logout current account.")
-            print("'<empty>'                          to show current loggin infomation.")
-            print("")
+        sys.exit()
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hl:a:u:p:", [
+                                   "help", "loginurl", "action", "username", "password"])
+    except getopt.GetoptError:
+        print("Unrecognized Parameter exists.")
+        show_help()
+        sys.exit()
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            show_help()
+            sys.exit()
+        elif o in ("-l", "--loginurl"):
+            login_url = a
+            if not login_url.startswith("http://") or not login_url.startswith("https://"):
+                login_url = "http://" + login_url
+            get_challenge_api = parse.urljoin(
+                login_url, "/cgi-bin/get_challenge")
+            srun_portal_login_api = parse.urljoin(
+                login_url, "/cgi-bin/srun_portal")
+            srun_portal_logout_api = parse.urljoin(
+                login_url, "/cgi-bin/rad_user_dm")
+            srun_portal_info_api = parse.urljoin(
+                login_url, "/cgi-bin/rad_user_info")
+        elif o in ("-a", "--action"):
+            action = a
+        elif o in ("-u", "--username"):
+            username = a
+        elif o in ("-p", "--password"):
+            passwd = a
+
+    if action == "info":
+        show_login_info()
+    elif action == "logout":
+        logout()
+    elif action == "login":
+        if not username:
+            username = input("Please input your user name:")
+        if not passwd:
+            passwd = getpass.getpass("Please input your password:")
+        login(username, passwd)

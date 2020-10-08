@@ -23,15 +23,26 @@
 
 Python版兰大深澜网络认证CLI登录、注销、查询信息客户端。
 
-目前支持`SRun CGI Auth Intf Svr V1.18 B20200522`，可能并不局限于兰州大学（当然要更改代码中`login_url`变量值），也可能向前向后版本都会兼容。请多多尝试！
+目前支持`SRun CGI Auth Intf Svr V1.18 B20200522`，可能并不局限于兰州大学（当然要指定`loginurl`），也可能向前向后版本都会兼容。请多多尝试！
 
 **使用方法**:
+```text
+--help     或 -h 来显示此消息.
+--loginurl 或 -l 来指定 login_url.
+--action   或 -a 来指定操作.
+         info   来显示当前登录账户信息.
+         logout 来退出当前登录.
+         login  来使用指定信息登录.
+--username 或 -u 来指定登录用户名.
+--password 或 -p 来指定登录密码.
+```
 
-`login [用户名 [, 密码]]`    来使用指定信息登录。
-
-`logout`                    来退出当前登录。
-
-`<empty>`                   来显示当前登录账户信息。
+**使用示例**:
+```text
+'-a login [-u username [ -p password]]'    来使用指定信息登录.
+'-a logout -l 10.10.0.166'                 来使用指定的 login_url 退出当前登录.
+'<empty>'                                  来显示当前登录账户信息.
+```
 
 # Srun LZU Network Auth
 
@@ -41,13 +52,24 @@ Python版兰大深澜网络认证CLI登录、注销、查询信息客户端。
 
 Tool for CLI login, logout, check acccount info for LZU 'SRun CGI Auth Intf Svr V1.18' using Python.
 
-Currently, `SRun CGI Auth Intf Svr V1.18 B20200522` is supported. The programme may not be limited to Lanzhou University (of course, the variable value in the code `login_url` should be changed), may also be compatible with both newer and older versions. Please give it a try!
+Currently, `SRun CGI Auth Intf Svr V1.18 B20200522` is supported. The programme may not be limited to Lanzhou University (of course, you should specify `loginurl`), may also be compatible with both newer and older versions. Please give it a try!
 
 **Usage**:
+```text
+--help     or -h to show this info.
+--loginurl or -l to specify login_url.
+--action   or -a to specify action.
+         info   to show current loggin infomation.
+         logout to logout current account.
+         login  to login with specified information.
+--username or -u to specify User Name.
+--password or -p to specify Password.
+```
 
-`login [username [, password]]`    to login with specified information.
-
-`logout`                           to logout current account.
-
-`<empty>`                          to show current loggin infomation.
+**Examples**:
+```text
+'-a login [-u username [ -p password]]'    to login with specified information.
+'-a logout -l 10.10.0.166'                 to logout current account with specified login_url.
+'<empty>'                                  to show current loggin infomation.
+```
 
