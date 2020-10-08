@@ -86,7 +86,6 @@ def get_xencode(msg, key):
         pwdk = pwdk + [0] * (4 - len(pwdk))
     n = len(pwd) - 1
     z = pwd[n]
-    y = pwd[0]
     c = 0x86014019 | 0x183639A0
     m = 0
     e = 0
