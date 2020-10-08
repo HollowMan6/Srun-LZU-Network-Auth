@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
 # by 'hollowman6' from Lanzhou University(兰州大学)
 
@@ -283,19 +284,23 @@ def login(username, password):
             srun_portal_res = requests.get(
                 srun_portal_login_api, params=srun_portal_params, headers=header)
             if srun_portal_res.status_code == 200:
-                if re.search('"error":"(.*?)"', srun_portal_res.text).group(1) == "ok":
-                    print("Login Success!")
-                    time.sleep(1)
-                    show_login_info()
-                else:
-                    try:
-                        print("Login Failed"+"! "+return_code_en_US[re.search('"error_msg":"(.*?)"', srun_portal_res.text).group(1)]+".")
-                    except Exception:
-                        message = re.search('"error_msg":"(.*?)"', srun_portal_res.text)
-                        if message:
-                            print("Login Failed"+"! "+message.group(1))
-                        else:
-                            print("Login Failed"+"! "+re.search('"error":"(.*?)"', srun_portal_res.text).group(1))
+                try:
+                    if re.search('"error":"(.*?)"', srun_portal_res.text).group(1) == "ok":
+                        print("Login Success!")
+                        time.sleep(1)
+                        show_login_info()
+                    else:
+                        try:
+                            print("Login Failed"+"! "+return_code_en_US[re.search('"error_msg":"(.*?)"', srun_portal_res.text).group(1)]+".")
+                        except Exception:
+                            message = re.search('"error_msg":"(.*?)"', srun_portal_res.text)
+                            if message:
+                                print("Login Failed"+"! "+message.group(1))
+                            else:
+                                print("Login Failed"+"! "+re.search('"error":"(.*?)"', srun_portal_res.text).group(1))
+                except Exception:
+                    print("Error parsing response data, you may need to change the login_url or the script may not suit your version!")
+                    sys.exit()
             else:
                 print("Connect Timeout! Check your Internet connection!")
 
@@ -309,37 +314,62 @@ def get_login_info():
         'callback': 'jQuery112403468157183476275_'+str(int(time.time()*1000)),
         '_': int(time.time()*1000)
     }
-    srun_portal_res = requests.get(
-        srun_portal_info_api, params=srun_portal_params, headers=header)
+    try:
+        srun_portal_res = requests.get(
+            srun_portal_info_api, params=srun_portal_params, headers=header)
+    except Exception:
+        print("You are not connected! Check your Internet connection!")
+        sys.exit()
     if srun_portal_res.status_code == 200:
-        if re.search('"error":"(.*?)"', srun_portal_res.text).group(1) == "ok":
-            user_name = re.search('"user_name":"(.*?)"', srun_portal_res.text).group(1)
-            user_mac = re.search('"user_mac":"(.*?)"', srun_portal_res.text).group(1)
-            online_ip = re.search('"online_ip":"(.*?)"', srun_portal_res.text).group(1)
-            sum_bytes = re.search('"sum_bytes":(.*?),', srun_portal_res.text).group(1)
-            sum_seconds = re.search('"sum_seconds":(.*?),', srun_portal_res.text).group(1)
-            user_balance = re.search('"user_balance":(.*?),', srun_portal_res.text).group(1)
-            return user_name, user_mac, online_ip, sum_bytes, sum_seconds, user_balance
+        try:
+            if re.search('"error":"(.*?)"', srun_portal_res.text).group(1) == "ok":
+                user_name = re.search('"user_name":"(.*?)"', srun_portal_res.text).group(1)
+                user_mac = re.search('"user_mac":"(.*?)"', srun_portal_res.text).group(1)
+                online_ip = re.search('"online_ip":"(.*?)"', srun_portal_res.text).group(1)
+                sum_bytes = re.search('"sum_bytes":(.*?),', srun_portal_res.text).group(1)
+                sum_seconds = re.search('"sum_seconds":(.*?),', srun_portal_res.text).group(1)
+                user_balance = re.search('"user_balance":(.*?),', srun_portal_res.text).group(1)
+                return user_name, user_mac, online_ip, sum_bytes, sum_seconds, user_balance
+        except Exception:
+            print("Error parsing response data, you may need to change the login_url or the script may not suit your version!")
+            sys.exit()
         return None
     else:
         print("Connect Timeout! Check your Internet connection!")
         return None
+
+def auto_bytes(bytes):
+    if bytes < 1024:
+        bytes = str(round(bytes, 2)) + ' B'
+    elif bytes >= 1024 and bytes < 1024 * 1024:
+        bytes = str(round(bytes / 1024, 2)) + ' KB'
+    elif bytes >= 1024 * 1024 and bytes < 1024 * 1024 * 1024:
+        bytes = str(round(bytes / 1024 / 1024, 2)) + ' MB'
+    elif bytes >= 1024 * 1024 * 1024 and bytes < 1024 * 1024 * 1024 * 1024:
+        bytes = str(round(bytes / 1024 / 1024 / 1024, 2)) + ' GB'
+    elif bytes >= 1024 * 1024 * 1024 * 1024 and bytes < 1024 * 1024 * 1024 * 1024 * 1024:
+        bytes = str(round(bytes / 1024 / 1024 / 1024 / 1024, 2)) + ' TB'
+    elif bytes >= 1024 * 1024 * 1024 * 1024 * 1024 and bytes < 1024 * 1024 * 1024 * 1024 * 1024 * 1024:
+        bytes = str(round(bytes / 1024 / 1024 / 1024 / 1024 / 1024, 2)) + ' PB'
+    elif bytes >= 1024 * 1024 * 1024 * 1024 * 1024 * 1024 and bytes < 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024:
+        bytes = str(round(bytes / 1024 / 1024 / 1024 / 1024 / 1024 /1024, 2)) + ' EB'
+    return bytes
 
 def show_login_info():
     info = get_login_info()
     if info:
         print("")
         print("User Name:         "+info[0])
-        print("Used bytes:        "+info[3])
+        print("Used Data:         "+auto_bytes(int(info[3])))
         seconds =int(info[4])
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
-        print("Used seconds:      %d:%02d:%02d" % (h, m, s))
+        print("Used Time:         %d:%02d:%02d" % (h, m, s))
         print("Account Balance:   "+info[5])
         print("IP:                "+info[2])
         print("MAC:               "+info[1])
     else:
-        print("Show Login Info Failed! Not online!")
+        print("Show Login Info Failed! You are not connected or no account online!")
 
 '''
  For Logout
@@ -370,17 +400,21 @@ def logout():
         srun_portal_res = requests.get(
             srun_portal_logout_api, params=srun_portal_params, headers=header)
         if srun_portal_res.status_code == 200:
-            if re.search('"error":"(.*?)"', srun_portal_res.text).group(1) == "logout_ok":
-                print("Logout Success!")
-            else:
-                try:
-                    print("Logout Failed! "+return_code_en_US[re.search('"error_msg":"(.*?)"', srun_portal_res.text).group(1)]+".")
-                except Exception:
-                    message = re.search('"error_msg":"(.*?)"', srun_portal_res.text)
-                if message:
-                    print("Logout Failed"+"! "+message.group(1))
+            try:
+                if re.search('"error":"(.*?)"', srun_portal_res.text).group(1) == "logout_ok":
+                    print("Logout Success!")
                 else:
-                    print("Logout Failed"+"! "+re.search('"error":"(.*?)"', srun_portal_res.text).group(1))
+                    try:
+                        print("Logout Failed! "+return_code_en_US[re.search('"error_msg":"(.*?)"', srun_portal_res.text).group(1)]+".")
+                    except Exception:
+                        message = re.search('"error_msg":"(.*?)"', srun_portal_res.text)
+                    if message:
+                        print("Logout Failed"+"! "+message.group(1))
+                    else:
+                        print("Logout Failed"+"! "+re.search('"error":"(.*?)"', srun_portal_res.text).group(1))
+            except Exception:
+                print("Error parsing response data, you may need to change the login_url or the script may not suit your version!")
+                sys.exit()
         else:
             print("Connect Timeout! Check your Internet connection!")
     else:
