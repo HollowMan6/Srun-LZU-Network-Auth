@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding:utf-8 -*-
 # by 'hollowman6' from Lanzhou University(兰州大学)
 
