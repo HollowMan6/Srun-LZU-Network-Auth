@@ -363,17 +363,17 @@ def get_login_info():
 def auto_bytes(bytes):
     if bytes < 1024:
         bytes = str(round(bytes, 2)) + ' B'
-    elif bytes >= 1024 and bytes < 1024 * 1024:
+    elif bytes < 1024 * 1024:
         bytes = str(round(bytes / 1024, 2)) + ' KB'
-    elif bytes >= 1024 * 1024 and bytes < 1024 * 1024 * 1024:
+    elif bytes < 1024 * 1024 * 1024:
         bytes = str(round(bytes / 1024 / 1024, 2)) + ' MB'
-    elif bytes >= 1024 * 1024 * 1024 and bytes < 1024 * 1024 * 1024 * 1024:
+    elif bytes < 1024 * 1024 * 1024 * 1024:
         bytes = str(round(bytes / 1024 / 1024 / 1024, 2)) + ' GB'
-    elif bytes >= 1024 * 1024 * 1024 * 1024 and bytes < 1024 * 1024 * 1024 * 1024 * 1024:
+    elif bytes < 1024 * 1024 * 1024 * 1024 * 1024:
         bytes = str(round(bytes / 1024 / 1024 / 1024 / 1024, 2)) + ' TB'
-    elif bytes >= 1024 * 1024 * 1024 * 1024 * 1024 and bytes < 1024 * 1024 * 1024 * 1024 * 1024 * 1024:
+    elif bytes < 1024 * 1024 * 1024 * 1024 * 1024 * 1024:
         bytes = str(round(bytes / 1024 / 1024 / 1024 / 1024 / 1024, 2)) + ' PB'
-    elif bytes >= 1024 * 1024 * 1024 * 1024 * 1024 * 1024 and bytes < 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024:
+    elif bytes < 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024:
         bytes = str(round(bytes / 1024 / 1024 / 1024 /
                           1024 / 1024 / 1024, 2)) + ' EB'
     return bytes
